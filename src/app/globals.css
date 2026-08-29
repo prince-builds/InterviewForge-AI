@@ -1,0 +1,143 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light mode (rarely used — dark-first) */
+    --background: 240 10% 98%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 262 83% 58%;
+    --radius: 0.75rem;
+    --gradient-start: 262 83% 58%;
+    --gradient-end: 239 84% 67%;
+    --card-gradient-start: 240 10% 99%;
+    --card-gradient-end: 240 6% 97%;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 8% 6%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 8% 6%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 262 83% 62%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 5% 12%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 5% 12%;
+    --muted-foreground: 240 5% 64%;
+    --accent: 262 50% 18%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 45%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5% 14%;
+    --input: 240 5% 14%;
+    --ring: 262 83% 62%;
+    --gradient-start: 262 83% 62%;
+    --gradient-end: 239 84% 67%;
+    --card-gradient-start: 240 8% 7%;
+    --card-gradient-end: 240 6% 5%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-1.5 h-1.5;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/30;
+  }
+}
+
+@layer utilities {
+  /* Glassmorphism card */
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-xl border border-border/60;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(262, 83%, 72%), hsl(239, 84%, 72%));
+  }
+
+  /* Brand gradient background */
+  .gradient-brand {
+    background-image: linear-gradient(135deg, hsl(262, 83%, 62%), hsl(239, 84%, 67%));
+  }
+
+  /* Skeleton shimmer */
+  .skeleton {
+    @apply relative overflow-hidden bg-muted;
+  }
+
+  .skeleton::after {
+    content: "";
+    @apply absolute inset-0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.04) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite linear;
+  }
+
+  /* Glow effects */
+  .glow-violet {
+    box-shadow: 0 0 24px rgba(139, 92, 246, 0.35);
+  }
+
+  .glow-indigo {
+    box-shadow: 0 0 24px rgba(99, 102, 241, 0.35);
+  }
+
+  /* Sidebar gradient */
+  .sidebar-gradient {
+    background: linear-gradient(
+      180deg,
+      hsl(240, 10%, 5%) 0%,
+      hsl(262, 20%, 7%) 50%,
+      hsl(240, 10%, 5%) 100%
+    );
+  }
+}

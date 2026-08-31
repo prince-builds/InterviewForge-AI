@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { skillGapApi } from "@/services/api";
 import { useProfileStore } from "@/store";
+import { getApiErrorMessage } from "@/lib/utils";
 
 export function useSkillGapReports() {
   const { activeProfile } = useProfileStore();
@@ -31,7 +32,12 @@ export function useRunSkillGap() {
       qc.invalidateQueries({ queryKey: ["skill-gap", activeProfile?.id] });
       toast.success("Skill gap analysis complete");
     },
-    onError: () =>
-      toast.error("Skill gap failed. Ensure resume and active JD have been analyzed first."),
+    onError: (err: unknown) => {
+      const msg = getApiErrorMessage(
+        err,
+        "Skill gap failed. Ensure resume and active JD are available."
+      );
+      toast.error(msg);
+    },
   });
 }

@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "npx tsx src/__tests__/interview-generation.test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "3.9.1",

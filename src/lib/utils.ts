@@ -125,3 +125,47 @@ export function interviewStatusColor(status: string): string {
   };
   return map[status] ?? "bg-muted text-muted-foreground";
 }
+
+export function getApiErrorMessage(
+  err: unknown,
+  fallback = "An unexpected error occurred. Please try again."
+): string {
+  if (!err || typeof err !== "object") return fallback;
+  const errorObj = err as {
+    message?: string;
+    response?: {
+      data?: {
+        error?: { message?: string; detail?: string };
+        detail?: string | Array<{ msg?: string; message?: string }>;
+        message?: string;
+      };
+    };
+  };
+
+  if (errorObj.message === "Network Error" || !errorObj.response) {
+    return "Unable to connect to backend server. Please verify the backend is running.";
+  }
+
+  const data = errorObj.response?.data;
+  if (data?.error?.message && typeof data.error.message === "string") {
+    return data.error.message;
+  }
+  if (data?.error?.detail && typeof data.error.detail === "string") {
+    return data.error.detail;
+  }
+  if (data?.detail) {
+    if (typeof data.detail === "string") {
+      return data.detail;
+    }
+    if (Array.isArray(data.detail) && data.detail.length > 0) {
+      return data.detail
+        .map((d) => (typeof d === "string" ? d : d.msg || d.message || JSON.stringify(d)))
+        .join(", ");
+    }
+  }
+  if (data?.message && typeof data.message === "string") {
+    return data.message;
+  }
+  return fallback;
+}
+

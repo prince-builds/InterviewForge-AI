@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { interviewsApi } from "@/services/api";
 import { useProfileStore } from "@/store";
+import { getApiErrorMessage } from "@/lib/utils";
 
 export function useInterviews() {
   const { activeProfile } = useProfileStore();
@@ -26,17 +27,26 @@ export function useGenerateInterview() {
   const { activeProfile } = useProfileStore();
   return useMutation({
     mutationFn: (data: {
-      interview_type: string;
-      question_count: number;
+      interview_type?: string;
+      question_count?: number;
+      count?: number;
       resume_id?: string;
       job_description_id?: string;
+      difficulty?: string;
+      categories?: string[];
     }) => interviewsApi.generate(activeProfile!.id, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["interviews", activeProfile?.id] });
+      qc.invalidateQueries({ queryKey: ["interview-questions", activeProfile?.id] });
       toast.success("Interview generated!");
     },
-    onError: () =>
-      toast.error("Failed to generate. Ensure resume and active JD are analyzed."),
+    onError: (err: unknown) => {
+      const msg = getApiErrorMessage(
+        err,
+        "Failed to generate interview questions. Please try again."
+      );
+      toast.error(msg);
+    },
   });
 }
 

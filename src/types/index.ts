@@ -217,6 +217,28 @@ export interface InterviewGenerateResponse {
   created_at: string;
 }
 
+export interface InterviewQuestionItem {
+  id: string;
+  profile_id: string;
+  resume_id?: string | null;
+  job_description_id?: string | null;
+  skill_gap_analysis_id?: string | null;
+  question: string;
+  category: string;
+  difficulty: string;
+  skill?: string | null;
+  expected_answer_points: string[];
+  context_source?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GeneratedQuestionsResponse {
+  questions: InterviewQuestionItem[];
+  total: number;
+}
+
+
 // ── Session ───────────────────────────────────────────────────────────────────
 
 export type AnswerStatus = "unanswered" | "answered" | "skipped";

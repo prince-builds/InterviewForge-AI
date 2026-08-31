@@ -40,7 +40,14 @@ function GenerateDialog({ open, onClose }: { open: boolean; onClose: () => void 
   });
 
   const onSubmit = (data: FormData) => {
-    generate(data, { onSuccess: () => onClose() });
+    generate(
+      {
+        count: data.question_count,
+        question_count: data.question_count,
+        interview_type: data.interview_type,
+      },
+      { onSuccess: () => onClose() }
+    );
   };
 
   return (
@@ -81,7 +88,6 @@ function GenerateDialog({ open, onClose }: { open: boolean; onClose: () => void 
           </div>
           <div className="p-3 rounded-xl bg-violet-500/10 border border-violet-500/20 text-xs text-muted-foreground">
             Interview uses your active resume and active job description for context.
-            Make sure both are analyzed before generating.
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>

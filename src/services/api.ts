@@ -8,6 +8,7 @@ import type {
   CurrentQuestionResponse,
   DashboardSummary,
   Evaluation,
+  GeneratedQuestionsResponse,
   InterviewDetailResponse,
   InterviewGenerateResponse,
   InterviewListResponse,
@@ -176,17 +177,35 @@ export const interviewsApi = {
   generate: (
     profileId: string,
     data: {
-      interview_type: string;
-      question_count: number;
+      count?: number;
+      question_count?: number;
+      interview_type?: string;
+      difficulty?: string;
+      categories?: string[];
       resume_id?: string;
       job_description_id?: string;
       skill_gap_report_id?: string;
     }
-  ) =>
-    apiClient.post<InterviewGenerateResponse>(
-      `/profiles/${profileId}/interviews/generate`,
-      data
-    ),
+  ) => {
+    const payload: {
+      count: number;
+      resume_id?: string;
+      job_description_id?: string;
+      difficulty?: string;
+      categories?: string[];
+    } = {
+      count: data.count ?? data.question_count ?? 5,
+    };
+    if (data.resume_id) payload.resume_id = data.resume_id;
+    if (data.job_description_id) payload.job_description_id = data.job_description_id;
+    if (data.difficulty) payload.difficulty = data.difficulty;
+    if (data.categories) payload.categories = data.categories;
+
+    return apiClient.post<GeneratedQuestionsResponse | InterviewGenerateResponse>(
+      `/profiles/${profileId}/interview-questions/generate`,
+      payload
+    );
+  },
 
   list: (profileId: string) =>
     apiClient.get<InterviewListResponse>(`/profiles/${profileId}/interviews`),

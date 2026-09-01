@@ -52,7 +52,7 @@ export default function InterviewSessionPage() {
     </div>
   );
 
-  if (interview?.status === "completed") {
+  if ((interview as any)?.status === "completed") {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
         <div className="w-20 h-20 rounded-2xl gradient-brand flex items-center justify-center shadow-glow-violet">
@@ -76,10 +76,21 @@ export default function InterviewSessionPage() {
     );
   }
 
-  const question = currentQ?.question;
+  const fallbackQuestion = (interview as any)?.question
+    ? {
+        id: interview!.id,
+        text: (interview as any).question,
+        question_category: (interview as any).category ?? "technical",
+        difficulty: (interview as any).difficulty ?? "medium",
+        topic: (interview as any).skill ?? null,
+        order_index: 0,
+      }
+    : null;
+
+  const question = currentQ?.question ?? fallbackQuestion;
   const questionIdx = currentQ?.current_question_index ?? 0;
-  const totalQ = progress?.total_questions ?? interview?.question_count ?? 0;
-  const pct = progress?.completion_percentage ?? 0;
+  const totalQ = progress?.total_questions ?? (interview as any)?.question_count ?? 1;
+  const pct = progress?.completion_percentage ?? (question ? 100 : 0);
 
   const handleSubmit = () => {
     if (!question || !answerText.trim()) return;
@@ -107,14 +118,18 @@ export default function InterviewSessionPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold">{interview?.title ?? "Interview Session"}</h1>
+          <h1 className="text-xl font-bold line-clamp-2">
+            {(interview as any)?.question ?? (interview as any)?.title ?? "Interview Question"}
+          </h1>
           <div className="flex items-center gap-3 mt-1">
-            <Badge variant="secondary" className="text-xs">
-              {interviewTypeLabel(interview?.interview_type ?? "technical")}
+            <Badge variant="secondary" className="text-xs capitalize">
+              {interviewTypeLabel((interview as any)?.category ?? (interview as any)?.interview_type ?? "technical")}
             </Badge>
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <Clock className="w-3 h-3" /> ~{interview?.estimated_duration_minutes} min
-            </span>
+            {(interview as any)?.estimated_duration_minutes && (
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Clock className="w-3 h-3" /> ~{(interview as any).estimated_duration_minutes} min
+              </span>
+            )}
           </div>
         </div>
         <Button
@@ -178,7 +193,7 @@ export default function InterviewSessionPage() {
 
         {/* Main question area */}
         <div className="lg:col-span-3 order-1 lg:order-2 space-y-4">
-          {loadingQ ? (
+          {loadingQ && !question ? (
             <Card glass>
               <CardContent className="p-6 space-y-4">
                 <Skeleton className="h-4 w-24" />

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { MessageSquare, Plus, Play, AlertCircle, Clock, CheckCircle } from "lucide-react";
+import { MessageSquare, Plus, Play, AlertCircle, Clock, CheckCircle, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,10 +20,20 @@ import {
 } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
-import { useInterviews, useGenerateInterview } from "@/hooks/use-interviews";
+import {
+  useInterviews,
+  useGenerateInterview,
+  useDeleteInterviewQuestion,
+} from "@/hooks/use-interviews";
 import { useProfileStore } from "@/store";
 import {
-  formatRelativeTime, interviewStatusColor, interviewTypeLabel, cn,
+  formatRelativeTime,
+  interviewStatusColor,
+  interviewTypeLabel,
+  categoryColor,
+  difficultyColor,
+  getApiErrorMessage,
+  cn,
 } from "@/lib/utils";
 
 const schema = z.object({
@@ -103,7 +113,8 @@ export default function InterviewsPage() {
   const router = useRouter();
   const [genOpen, setGenOpen] = useState(false);
   const { activeProfile } = useProfileStore();
-  const { data, isLoading } = useInterviews();
+  const { data, isLoading, isError, error, refetch } = useInterviews();
+  const { mutate: deleteQuestion } = useDeleteInterviewQuestion();
 
   const interviews = data?.items ?? [];
 
@@ -131,6 +142,13 @@ export default function InterviewsPage() {
             </CardContent></Card>
           ))}
         </div>
+      ) : isError ? (
+        <EmptyState
+          icon={AlertCircle}
+          title="Unable to load interview questions"
+          description={getApiErrorMessage(error, "Failed to load interview questions. Please try again.")}
+          action={{ label: "Retry", onClick: () => refetch() }}
+        />
       ) : interviews.length === 0 ? (
         <EmptyState
           icon={MessageSquare}
@@ -140,62 +158,111 @@ export default function InterviewsPage() {
         />
       ) : (
         <div className="space-y-3">
-          {interviews.map((iv) => (
-            <Card key={iv.id} glass className="hover:border-violet-500/20 transition-all group">
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center flex-shrink-0">
-                      <MessageSquare className="w-5 h-5 text-violet-400" />
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="font-semibold truncate">{iv.title}</h3>
-                      <div className="flex items-center gap-3 mt-1 flex-wrap">
-                        <Badge className={cn("text-xs", interviewStatusColor(iv.status))}>
-                          {iv.status.replace("_", " ")}
-                        </Badge>
-                        <Badge variant="secondary" className="text-xs">
-                          {interviewTypeLabel(iv.interview_type)}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Clock className="w-3 h-3" /> {iv.estimated_duration_minutes} min
-                        </span>
-                        <span className="text-xs text-muted-foreground">{formatRelativeTime(iv.created_at)}</span>
+          {interviews.map((iv) => {
+            const questionText =
+              (iv as any).question || (iv as any).title || "Generated Question";
+            const category =
+              (iv as any).category || (iv as any).interview_type || "technical";
+            const difficulty = (iv as any).difficulty;
+            const skill = (iv as any).skill;
+            const status = (iv as any).status;
+            const expectedPoints: string[] =
+              Array.isArray((iv as any).expected_answer_points)
+                ? (iv as any).expected_answer_points
+                : [];
+
+            return (
+              <Card key={iv.id} glass className="hover:border-violet-500/20 transition-all group">
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center flex-shrink-0">
+                        <MessageSquare className="w-5 h-5 text-violet-400" />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-sm leading-snug">{questionText}</h3>
+                        <div className="flex items-center gap-2 mt-2 flex-wrap">
+                          {status && (
+                            <Badge className={cn("text-xs", interviewStatusColor(status))}>
+                              {status.replace("_", " ")}
+                            </Badge>
+                          )}
+                          <Badge className={cn("text-xs capitalize", categoryColor(category))}>
+                            {category.replace("_", " ")}
+                          </Badge>
+                          {difficulty && (
+                            <Badge variant="outline" className={cn("text-xs capitalize", difficultyColor(difficulty))}>
+                              {difficulty}
+                            </Badge>
+                          )}
+                          {skill && (
+                            <Badge variant="secondary" className="text-xs">
+                              {skill}
+                            </Badge>
+                          )}
+                          {(iv as any).estimated_duration_minutes && (
+                            <span className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Clock className="w-3 h-3" /> {(iv as any).estimated_duration_minutes} min
+                            </span>
+                          )}
+                          <span className="text-xs text-muted-foreground">{formatRelativeTime(iv.created_at)}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex gap-2 flex-shrink-0">
-                    {iv.status === "completed" ? (
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {status === "completed" ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => router.push(`/interviews/${iv.id}/results`)}
+                        >
+                          <CheckCircle className="w-4 h-4" /> View Results
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          onClick={() => router.push(`/interviews/${iv.id}`)}
+                        >
+                          <Play className="w-4 h-4" />
+                          {status === "in_progress" ? "Continue" : "Practice"}
+                        </Button>
+                      )}
                       <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => router.push(`/interviews/${iv.id}/results`)}
+                        variant="ghost"
+                        size="icon-sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => deleteQuestion(iv.id)}
+                        title="Delete question"
                       >
-                        <CheckCircle className="w-4 h-4" /> View Results
+                        <Trash2 className="w-3.5 h-3.5" />
                       </Button>
-                    ) : (
-                      <Button
-                        size="sm"
-                        onClick={() => router.push(`/interviews/${iv.id}`)}
-                      >
-                        <Play className="w-4 h-4" />
-                        {iv.status === "pending" ? "Start" : "Continue"}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-                {(iv.status === "in_progress" || iv.status === "pending") && (
-                  <div className="mt-4">
-                    <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
-                      <span>Progress</span>
-                      <span>{iv.current_question_index}/{iv.question_count}</span>
                     </div>
-                    <Progress value={(iv.current_question_index / iv.question_count) * 100} className="h-1.5" />
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+
+                  {expectedPoints.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-border/40">
+                      <p className="text-xs font-medium text-muted-foreground mb-1.5">Expected Key Points:</p>
+                      <ul className="list-disc list-inside space-y-1 text-xs text-muted-foreground/90">
+                        {expectedPoints.map((pt, idx) => (
+                          <li key={idx} className="leading-relaxed">{pt}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {(status === "in_progress" || status === "pending") && (iv as any).question_count && (
+                    <div className="mt-4">
+                      <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
+                        <span>Progress</span>
+                        <span>{(iv as any).current_question_index ?? 0}/{(iv as any).question_count}</span>
+                      </div>
+                      <Progress value={(((iv as any).current_question_index ?? 0) / (iv as any).question_count) * 100} className="h-1.5" />
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 

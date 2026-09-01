@@ -238,6 +238,13 @@ export interface GeneratedQuestionsResponse {
   total: number;
 }
 
+export interface InterviewQuestionListResponse {
+  items: InterviewQuestionItem[];
+  total: number;
+}
+
+
+
 
 // ── Session ───────────────────────────────────────────────────────────────────
 

@@ -203,7 +203,21 @@ export default function InterviewResultsPage() {
     );
   }
 
-  const questions = interview?.questions ?? [];
+  const questions: GeneratedQuestion[] = Array.isArray((interview as any)?.questions)
+    ? (interview as any).questions
+    : (interview as any)?.question
+    ? [
+        {
+          id: (interview as any).id,
+          text: (interview as any).question,
+          question_category: (interview as any).category ?? "technical",
+          difficulty: (interview as any).difficulty ?? "medium",
+          order_index: 0,
+          topic: (interview as any).skill ?? null,
+        },
+      ]
+    : [];
+
   // Build a simple answer map from question order — in production each question
   // would be fetched individually, but the detail endpoint gives us questions with IDs
   const answerMap: Record<string, { text: string; status: string; id: string }> = {};
@@ -212,7 +226,7 @@ export default function InterviewResultsPage() {
     <div className="max-w-4xl mx-auto space-y-6">
       <PageHeader
         title="Interview Results"
-        description={interview?.title}
+        description={(interview as any)?.question ?? (interview as any)?.title ?? "AI Interview Results"}
         actions={
           <Button variant="outline" onClick={() => router.push("/interviews")}>
             ← Back
@@ -227,7 +241,8 @@ export default function InterviewResultsPage() {
             <ScoreRing score={0} size="md" showLabel />
             <div className="flex-1 space-y-2">
               <p className="font-medium">
-                {questions.length} questions · {interview?.estimated_duration_minutes} min estimated
+                {questions.length} question{questions.length === 1 ? "" : "s"}
+                {(interview as any)?.estimated_duration_minutes ? ` · ${(interview as any).estimated_duration_minutes} min estimated` : ""}
               </p>
               <p className="text-sm text-muted-foreground">
                 Click <strong>Evaluate</strong> on each answered question to get AI feedback and scores.
@@ -240,7 +255,7 @@ export default function InterviewResultsPage() {
 
       {/* Questions */}
       <div className="space-y-4">
-        {questions.map((q) => (
+        {questions.map((q: GeneratedQuestion) => (
           <QuestionEvalCard
             key={q.id}
             question={q}

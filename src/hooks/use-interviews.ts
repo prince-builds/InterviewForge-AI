@@ -118,8 +118,27 @@ export function useNavigateInterview(interviewId: string) {
       onSuccess: () => {
         invalidate();
         qc.invalidateQueries({ queryKey: ["interviews", activeProfile?.id] });
+        qc.invalidateQueries({ queryKey: ["interview-questions", activeProfile?.id] });
         toast.success("Interview completed!");
       },
     }),
   };
 }
+
+export function useDeleteInterviewQuestion() {
+  const qc = useQueryClient();
+  const { activeProfile } = useProfileStore();
+  return useMutation({
+    mutationFn: (questionId: string) =>
+      interviewsApi.delete(activeProfile!.id, questionId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["interviews", activeProfile?.id] });
+      qc.invalidateQueries({ queryKey: ["interview-questions", activeProfile?.id] });
+      toast.success("Interview question deleted");
+    },
+    onError: (err: unknown) => {
+      toast.error(getApiErrorMessage(err, "Failed to delete interview question"));
+    },
+  });
+}
+

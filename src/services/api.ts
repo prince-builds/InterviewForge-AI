@@ -13,6 +13,8 @@ import type {
   InterviewGenerateResponse,
   InterviewListResponse,
   InterviewProgress,
+  InterviewQuestionItem,
+  InterviewQuestionListResponse,
   JDAnalysis,
   JobDescription,
   JobDescriptionListResponse,
@@ -208,11 +210,18 @@ export const interviewsApi = {
   },
 
   list: (profileId: string) =>
-    apiClient.get<InterviewListResponse>(`/profiles/${profileId}/interviews`),
+    apiClient.get<InterviewQuestionListResponse>(
+      `/profiles/${profileId}/interview-questions`
+    ),
 
-  get: (profileId: string, interviewId: string) =>
-    apiClient.get<InterviewDetailResponse>(
-      `/profiles/${profileId}/interviews/${interviewId}`
+  get: (profileId: string, questionId: string) =>
+    apiClient.get<InterviewQuestionItem>(
+      `/profiles/${profileId}/interview-questions/${questionId}`
+    ),
+
+  delete: (profileId: string, questionId: string) =>
+    apiClient.delete<{ success: boolean; message: string }>(
+      `/profiles/${profileId}/interview-questions/${questionId}`
     ),
 
   // Session navigation

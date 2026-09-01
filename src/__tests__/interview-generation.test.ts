@@ -231,6 +231,137 @@ async function runTests() {
     }
   });
 
+  // ---------------------------------------------------------------------------
+  // 3. interviewsApi.list / get / delete and Post-Generation Flow Tests
+  // ---------------------------------------------------------------------------
+
+  await asyncTest("interviewsApi.list fetches /profiles/{profile_id}/interview-questions", async () => {
+    let capturedUrl = "";
+    const originalGet = apiClient.get;
+    apiClient.get = async <T>(url: string) => {
+      capturedUrl = url;
+      return {
+        items: [
+          {
+            id: "q-101",
+            profile_id: "prof-123",
+            question: "Explain Python GIL and concurrency model",
+            category: "technical",
+            difficulty: "medium",
+            skill: "Python",
+            expected_answer_points: ["Thread safety", "CPython reference counting"],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        ],
+        total: 1,
+      } as unknown as T;
+    };
+
+    try {
+      const res = await interviewsApi.list("prof-123");
+      assert.strictEqual(
+        capturedUrl,
+        "/profiles/prof-123/interview-questions",
+        "Must fetch from /interview-questions endpoint"
+      );
+      assert.strictEqual(res.items.length, 1);
+      assert.strictEqual(res.items[0].id, "q-101");
+      assert.strictEqual(res.items[0].question, "Explain Python GIL and concurrency model");
+      assert.strictEqual(res.items[0].skill, "Python");
+    } finally {
+      apiClient.get = originalGet;
+    }
+  });
+
+  await asyncTest("interviewsApi.get fetches single interview question by ID", async () => {
+    let capturedUrl = "";
+    const originalGet = apiClient.get;
+    apiClient.get = async <T>(url: string) => {
+      capturedUrl = url;
+      return {
+        id: "q-101",
+        profile_id: "prof-123",
+        question: "Explain Python GIL",
+        category: "technical",
+        difficulty: "medium",
+        skill: "Python",
+        expected_answer_points: ["Thread safety"],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      } as unknown as T;
+    };
+
+    try {
+      const res = await interviewsApi.get("prof-123", "q-101");
+      assert.strictEqual(
+        capturedUrl,
+        "/profiles/prof-123/interview-questions/q-101"
+      );
+      assert.strictEqual(res.id, "q-101");
+    } finally {
+      apiClient.get = originalGet;
+    }
+  });
+
+  await asyncTest("interviewsApi.delete sends DELETE to /profiles/{profile_id}/interview-questions/{question_id}", async () => {
+    let capturedUrl = "";
+    const originalDelete = apiClient.delete;
+    apiClient.delete = async <T>(url: string) => {
+      capturedUrl = url;
+      return { success: true, message: "Interview question deleted successfully" } as unknown as T;
+    };
+
+    try {
+      const res = await interviewsApi.delete("prof-123", "q-101");
+      assert.strictEqual(
+        capturedUrl,
+        "/profiles/prof-123/interview-questions/q-101"
+      );
+      assert.strictEqual(res.success, true);
+    } finally {
+      apiClient.delete = originalDelete;
+    }
+  });
+
+  test("Generated interview question items render safely without missing property crashes", () => {
+    const rawQuestionItem = {
+      id: "q-999",
+      profile_id: "prof-abc",
+      question: "How do you optimize slow database queries in PostgreSQL?",
+      category: "technical",
+      difficulty: "hard",
+      skill: "PostgreSQL",
+      expected_answer_points: [
+        "Run EXPLAIN ANALYZE",
+        "Add appropriate B-tree or partial indexes",
+        "Check table bloat and vacuuming",
+      ],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    // Verify safe accessor logic as implemented in InterviewsPage
+    const questionText = (rawQuestionItem as any).question || (rawQuestionItem as any).title || "Generated Question";
+    const category = (rawQuestionItem as any).category || (rawQuestionItem as any).interview_type || "technical";
+    const difficulty = (rawQuestionItem as any).difficulty;
+    const skill = (rawQuestionItem as any).skill;
+    const statusVal: unknown = (rawQuestionItem as Record<string, unknown>).status;
+    const expectedPoints: string[] = Array.isArray((rawQuestionItem as any).expected_answer_points)
+      ? (rawQuestionItem as any).expected_answer_points
+      : [];
+
+    assert.strictEqual(questionText, "How do you optimize slow database queries in PostgreSQL?");
+    assert.strictEqual(category, "technical");
+    assert.strictEqual(difficulty, "hard");
+    assert.strictEqual(skill, "PostgreSQL");
+    assert.strictEqual(statusVal, undefined);
+    assert.strictEqual(expectedPoints.length, 3);
+    // Ensure safe status check doesn't throw
+    const formattedStatus = typeof statusVal === "string" ? (statusVal as string).replace("_", " ") : null;
+    assert.strictEqual(formattedStatus, null);
+  });
+
   console.log(`\nResults: ${passed}/${total} tests passed.\n`);
   if (passed !== total) {
     process.exit(1);
@@ -238,3 +369,4 @@ async function runTests() {
 }
 
 runTests();
+

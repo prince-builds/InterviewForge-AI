@@ -45,8 +45,8 @@ export default function DashboardPage() {
   const quickActions = [
     { label: "Upload Resume", icon: Upload, onClick: () => router.push("/resumes"), color: "violet" },
     { label: "Add Job Description", icon: Plus, onClick: () => router.push("/job-descriptions"), color: "indigo" },
+    { label: "Skill Gap Analysis", icon: TrendingUp, onClick: () => router.push("/analytics/skill-gap"), color: "cyan" },
     { label: "Start Interview", icon: Play, onClick: () => router.push("/interviews"), color: "blue" },
-    { label: "Generate Roadmap", icon: Map, onClick: () => router.push("/roadmaps"), color: "cyan" },
   ] as const;
 
   // Derive mock trend data from summary

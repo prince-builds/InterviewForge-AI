@@ -9,10 +9,6 @@ import {
   Briefcase,
   MessageSquare,
   BarChart3,
-  Map,
-  BookOpen,
-  Bot,
-  Settings,
   ChevronLeft,
   Zap,
 } from "lucide-react";
@@ -27,10 +23,6 @@ const navItems = [
   { href: "/job-descriptions", icon: Briefcase, label: "Job Descriptions" },
   { href: "/interviews", icon: MessageSquare, label: "Interviews" },
   { href: "/analytics", icon: BarChart3, label: "Analytics" },
-  { href: "/roadmaps", icon: Map, label: "Roadmaps" },
-  { href: "/knowledge", icon: BookOpen, label: "Knowledge Base" },
-  { href: "/agents", icon: Bot, label: "Agent Runs" },
-  { href: "/settings", icon: Settings, label: "Settings" },
 ];
 
 export function Sidebar() {

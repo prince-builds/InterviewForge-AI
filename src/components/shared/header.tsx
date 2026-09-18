@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { LogOut, Settings, User, ChevronDown, CheckCircle2 } from "lucide-react";
+import { LogOut, User, ChevronDown, CheckCircle2 } from "lucide-react";
 import { useAuthStore, useProfileStore } from "@/store";
 import { Button } from "@/components/ui/button";
 import {
@@ -96,9 +96,9 @@ export function Header() {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => router.push("/settings")}>
-            <Settings className="w-4 h-4" />
-            Settings
+          <DropdownMenuItem onClick={() => router.push("/profiles")}>
+            <User className="w-4 h-4" />
+            Manage Profiles
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout} className="text-red-400 focus:text-red-400">
